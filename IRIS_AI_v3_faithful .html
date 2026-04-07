@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRIS AI — Intelligent Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+
+body{
+  font-family:'Sora',sans-serif;
+  background:#0a0a0f;
+  color:white;
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+}
+
+.bg-orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
+.orb1{width:350px;height:350px;background:rgba(83,74,183,0.22);top:-100px;left:-80px;}
+.orb2{width:280px;height:280px;background:rgba(13,158,117,0.16);bottom:-80px;right:60px;}
+.orb3{width:200px;height:200px;background:rgba(212,83,126,0.13);top:40%;left:32%;}
+
+/* ── SIDEBAR ──────────────────────────────── */
+.sidebar{
+  width:230px;
+  min-width:230px;
+  background:rgba(255,255,255,0.025);
+  border-right:0.5px solid rgba(255,255,255,0.07);
+  display:flex;
+  flex-direction:column;
+  z-index:2;
+  height:100vh;
+  overflow:hidden;
+}
+
+.sidebar-logo{padding:22px 20px 18px;border-bottom:0.5px solid rgba(255,255,255,0.06);}
+.iris-brand{
+  font-size:22px;font-weight:600;letter-spacing:4px;
+  background:linear-gradient(135deg,#a29bf0,#5dcaa5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.iris-sub{font-size:9px;letter-spacing:2.5px;color:rgba(255,255,255,0.28);text-transform:uppercase;margin-top:3px;}
+
+.new-chat-btn{
+  margin:14px 14px 10px;
+  padding:9px 14px;
+  background:rgba(162,155,240,0.08);
+  border:0.5px solid rgba(162,155,240,0.25);
+  border-radius:10px;
+  color:rgba(162,155,240,0.75);
+  font-size:12px;font-family:'Sora',sans-serif;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  transition:all 0.2s;width:calc(100% - 28px);
+}
+.new-chat-btn:hover{background:rgba(162,155,240,0.16);border-color:rgba(162,155,240,0.45);color:#a29bf0;}
+.new-chat-btn .plus{font-size:17px;line-height:1;}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:13px;
+  color:rgba(255,255,255,0.42);
+  cursor:pointer;transition:all 0.2s;position:relative;
+}
+.nav-item:hover{color:rgba(255,255,255,0.8);background:rgba(255,255,255,0.04);}
+.nav-item.active{color:#a29bf0;background:rgba(162,155,240,0.08);}
+.nav-item.active::before{
+  content:'';position:absolute;left:0;top:20%;bottom:20%;
+  width:2px;background:#a29bf0;border-radius:0 2px 2px 0;
+}
+.nav-icon{font-size:15px;width:18px;text-align:center;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.nav-icon svg{width:15px;height:15px;}
+
+.nav-section{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,0.2);padding:14px 20px 5px;
+}
+
+.history-list{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.07) transparent;}
+.history-item{
+  padding:8px 20px;font-size:12px;color:rgba(255,255,255,0.32);
+  cursor:pointer;transition:all 0.18s;
+  display:flex;align-items:center;justify-content:space-between;gap:6px;
+}
+.history-item:hover{color:rgba(255,255,255,0.68);background:rgba(255,255,255,0.03);}
+.history-item.active-chat{color:#a29bf0;}
+.history-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.hi-del{
+  opacity:0;font-size:10px;color:rgba(255,70,70,0.55);
+  cursor:pointer;flex-shrink:0;transition:opacity 0.15s;padding:0 3px;
+}
+.history-item:hover .hi-del{opacity:1;}
+.hi-count{
+  font-size:9px;padding:1px 5px;
+  background:rgba(162,155,240,0.12);border:0.5px solid rgba(162,155,240,0.22);
+  border-radius:6px;color:rgba(162,155,240,0.55);flex-shrink:0;
+}
+.no-history{padding:12px 20px;font-size:11px;color:rgba(255,255,255,0.15);font-style:italic;}
+
+.sidebar-footer{
+  padding:14px 20px;
+  border-top:0.5px solid rgba(255,255,255,0.06);
+  flex-shrink:0;
+}
+.user-info{display:flex;align-items:center;gap:10px;}
+.avatar{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,#534ab7,#1d9e75);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:500;color:white;flex-shrink:0;
+}
+.user-name{font-size:12px;color:rgba(255,255,255,0.6);}
+.user-role{font-size:10px;color:rgba(255,255,255,0.25);}
+.online-dot{width:6px;height:6px;background:#5dcaa5;border-radius:50%;margin-left:auto;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ── MAIN ─────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;z-index:1;min-width:0;height:100vh;overflow:hidden;position:relative;}
+
+/* TOP BAR */
+.top-bar{
+  padding:13px 24px;
+  border-bottom:0.5px solid rgba(255,255,255,0.06);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+  background:rgba(10,10,15,0.6);
+  backdrop-filter:blur(12px);
+}
+.top-bar-left{font-size:13px;color:rgba(255,255,255,0.35);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px;}
+.top-right{display:flex;align-items:center;gap:8px;}
+
+.server-status{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;color:rgba(255,255,255,0.35);
+  padding:4px 10px;
+  border:0.5px solid rgba(255,255,255,0.08);
+  border-radius:20px;
+  cursor:default;
+}
+.server-dot{width:5px;height:5px;border-radius:50%;background:#e24b4a;transition:background 0.3s;}
+.server-dot.ok{background:#5dcaa5;}
+
+.model-select-wrap{position:relative;}
+.model-select-wrap select{
+  appearance:none;
+  background:rgba(162,155,240,0.08);
+  color:rgba(162,155,240,0.85);
+  border:0.5px solid rgba(162,155,240,0.25);
+  border-radius:20px;
+  padding:5px 28px 5px 12px;
+  font-size:11px;font-family:'Sora',sans-serif;
+  cursor:pointer;outline:none;transition:all 0.2s;
+}
+.model-select-wrap select:hover{background:rgba(162,155,240,0.15);border-color:rgba(162,155,240,0.45);}
+.model-select-wrap::after{
+  content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  font-size:10px;color:rgba(162,155,240,0.6);pointer-events:none;
+}
+.model-select-wrap select option{background:#1a1a2e;color:white;}
+
+.model-badge{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.09);
+  border-radius:20px;padding:5px 11px;
+  font-size:11px;color:rgba(255,255,255,0.45);
+}
+.model-dot{width:5px;height:5px;background:#5dcaa5;border-radius:50%;animation:blink 2s infinite;}
+
+.tb-btn{
+  width:28px;height:28px;border-radius:7px;
+  border:0.5px solid rgba(255,255,255,0.08);
+  background:transparent;color:rgba(255,255,255,0.3);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.65);border-color:rgba(255,255,255,0.15);}
+.tb-btn svg{width:13px;height:13px;}
+
+/* CHAT AREA */
+.chat-area{
+  flex:1;overflow-y:auto;padding:24px;
+  display:flex;flex-direction:column;gap:20px;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent;
+  position:relative;
+}
+
+.wm-bg{
+  font-size:clamp(55px,9vw,96px);font-weight:600;letter-spacing:18px;
+  color:rgba(255,255,255,0.028);
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;user-select:none;
+  font-family:'Sora',sans-serif;white-space:nowrap;z-index:0;
+}
+.wm-sub{
+  font-size:9px;letter-spacing:5px;
+  color:rgba(162,155,240,0.04);
+  position:absolute;top:calc(50% + clamp(34px,6vw,55px));left:50%;transform:translateX(-50%);
+  pointer-events:none;white-space:nowrap;text-transform:uppercase;z-index:0;
+}
+
+.welcome-screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex:1;gap:12px;
+  animation:fadeUp 0.5s ease;
+  position:absolute;inset:0;z-index:1;
+}
+.welcome-icon{
+  width:58px;height:58px;
+  background:linear-gradient(135deg,rgba(162,155,240,0.28),rgba(93,202,165,0.28));
+  border:0.5px solid rgba(162,155,240,0.4);border-radius:16px;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+}
+.welcome-title{font-size:22px;font-weight:500;color:rgba(255,255,255,0.82);text-align:center;}
+.welcome-sub{font-size:13px;color:rgba(255,255,255,0.3);text-align:center;max-width:300px;line-height:1.6;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:6px;max-width:380px;}
+.chip{
+  background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);
+  border-radius:20px;padding:7px 14px;font-size:12px;color:rgba(255,255,255,0.48);
+  cursor:pointer;transition:all 0.2s;font-family:'Sora',sans-serif;
+}
+.chip:hover{background:rgba(162,155,240,0.12);border-color:rgba(162,155,240,0.4);color:rgba(255,255,255,0.82);}
+
+/* MESSAGES */
+.msg-row{display:flex;animation:fadeUp 0.28s ease;position:relative;z-index:1;}
+.msg-row.user{justify-content:flex-end;}
+.msg-row.iris{justify-content:flex-start;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:translateY(0);}}
+
+.msg-bubble{
+  max-width:70%;padding:12px 16px;
+  font-size:13.5px;line-height:1.68;border-radius:16px;
+}
+.msg-row.user .msg-bubble{
+  background:rgba(162,155,240,0.16);
+  border:0.5px solid rgba(162,155,240,0.28);
+  color:rgba(255,255,255,0.88);
+  border-bottom-right-radius:3px;
+}
+.msg-row.iris .msg-bubble{
+  background:rgba(255,255,255,0.04);
+  border:0.5px solid rgba(255,255,255,0.08);
+  color:rgba(255,255,255,0.78);
+  border-bottom-left-radius:3px;
+}
+
+.iris-msg-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.iris-dot{
+  width:20px;height:20px;
+  background:linear-gradient(135deg,#a29bf0,#5dcaa5);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;flex-shrink:0;
+}
+.iris-label{font-size:11px;color:#a29bf0;font-weight:500;letter-spacing:1px;}
+
+.msg-meta{font-size:10px;color:rgba(255,255,255,0.2);margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.msg-row.user .msg-meta{justify-content:flex-end;}
+.mem-badge{font-size:9px;padding:1px 7px;background:rgba(93,202,165,0.1);border:0.5px solid rgba(93,202,165,0.25);border-radius:8px;color:rgba(93,202,165,0.7);}
+.model-tag{font-size:9px;padding:1px 7px;background:rgba(162,155,240,0.1);border:0.5px solid rgba(162,155,240,0.2);border-radius:8px;color:rgba(162,155,240,0.6);}
+
+/* THINKING */
+.thinking-row{display:flex;justify-content:flex-start;z-index:1;position:relative;}
+.thinking-bubble{
+  background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.08);
+  border-radius:16px;border-bottom-left-radius:3px;
+  padding:12px 16px;display:flex;align-items:center;gap:10px;
+}
+.thinking-icon{
+  width:20px;height:20px;
+  background:linear-gradient(135deg,#a29bf0,#5dcaa5);
+  border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;animation:spin 2s linear infinite;
+}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.thinking-text{font-size:12px;color:rgba(255,255,255,0.35);letter-spacing:0.5px;}
+.thinking-dots span{
+  display:inline-block;width:5px;height:5px;
+  background:rgba(162,155,240,0.55);border-radius:50%;margin:0 2px;
+  animation:bounce 1.2s infinite;
+}
+.thinking-dots span:nth-child(2){animation-delay:0.2s;}
+.thinking-dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,80%,100%{transform:translateY(0);}40%{transform:translateY(-5px);}}
+
+/* CODE */
+.code-block{
+  background:rgba(0,0,0,0.42);border:0.5px solid rgba(255,255,255,0.1);
+  border-radius:8px;padding:10px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;color:#5dcaa5;
+  margin-top:8px;white-space:pre-wrap;overflow-x:auto;
+}
+code.inline{
+  background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+}
+
+/* ERROR BUBBLE */
+.error-bubble{
+  background:rgba(226,75,74,0.08);border:0.5px solid rgba(226,75,74,0.25);
+  border-radius:10px;padding:10px 14px;font-size:12.5px;
+  color:rgba(255,140,140,0.85);line-height:1.6;
+}
+
+/* INPUT */
+.input-zone{padding:14px 24px 18px;border-top:0.5px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.input-box{
+  background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.12);
+  border-radius:14px;display:flex;align-items:flex-end;gap:10px;
+  padding:12px 14px;transition:border-color 0.2s;
+}
+.input-box:focus-within{border-color:rgba(162,155,240,0.5);background:rgba(162,155,240,0.05);}
+#iris-input{
+  flex:1;background:none;border:none;outline:none;
+  font-family:'Sora',sans-serif;font-size:13px;color:rgba(255,255,255,0.85);
+  resize:none;max-height:120px;line-height:1.5;scrollbar-width:none;
+}
+#iris-input::placeholder{color:rgba(255,255,255,0.2);}
+.send-btn{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,#534ab7,#1d9e75);
+  border:none;border-radius:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:opacity 0.2s,transform 0.15s;color:white;font-size:15px;
+}
+.send-btn:hover{opacity:0.85;}
+.send-btn:active{transform:scale(0.92);}
+.send-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+.input-footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:0 2px;}
+.inp-hint{font-size:10px;color:rgba(255,255,255,0.17);}
+</style>
+</head>
+<body>
+
+<!-- Background Orbs -->
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="iris-brand">IRIS</div>
+    <div class="iris-sub">AI Assistant</div>
+  </div>
+
+  <button class="new-chat-btn" onclick="newChat()">
+    <span class="plus">+</span> New conversation
+  </button>
+
+  <div class="nav-item active" onclick="setNav(this)">
+    <span class="nav-icon">◈</span> Chat
+  </div>
+  <div class="nav-item" onclick="setNav(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    </span> Dashboard
+  </div>
+  <div class="nav-item" onclick="setNav(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+    </span> Explore
+  </div>
+  <div class="nav-item" onclick="setNav(this)">
+    <span class="nav-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </span> Settings
+  </div>
+
+  <div class="nav-section">Recent</div>
+  <div class="history-list" id="historyList"></div>
+
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <div class="avatar">YN</div>
+      <div>
+        <div class="user-name">You</div>
+        <div class="user-role">IRIS User</div>
+      </div>
+      <div class="online-dot" title="Online"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="top-bar-left" id="convTitle">New conversation</div>
+    <div class="top-right">
+
+      <!-- Server status -->
+      <div class="server-status" id="serverStatus">
+        <div class="server-dot" id="serverDot"></div>
+        <span id="serverText">checking...</span>
+      </div>
+
+      <!-- Model selector -->
+      <div class="model-select-wrap">
+        <select id="modelSelect" onchange="onModelChange()">
+          <option value="local">🦙 Local (Ollama)</option>
+          <option value="openai">⚡ OpenAI (GPT-4o)</option>
+          <option value="claude">◈ Claude</option>
+        </select>
+      </div>
+
+      <!-- Active model badge -->
+      <div class="model-badge">
+        <div class="model-dot"></div>
+        <span id="modelName">phi3 · local</span>
+      </div>
+
+      <!-- Clear -->
+      <button class="tb-btn" onclick="clearCurrentChat()" title="Clear chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area" id="chat-area">
+    <div class="wm-bg">IRIS</div>
+    <div class="wm-sub">Intelligent Response Intelligence System</div>
+    <div class="welcome-screen" id="welcome">
+      <div class="welcome-icon">◈</div>
+      <div class="welcome-title">Hi 👋 How can I help you today?</div>
+      <div class="welcome-sub">Ask me anything — code, research, ideas, or just a conversation.</div>
+      <div class="chips">
+        <div class="chip" onclick="sendChip(this)">Write a Python function</div>
+        <div class="chip" onclick="sendChip(this)">Explain async/await</div>
+        <div class="chip" onclick="sendChip(this)">Debug my code</div>
+        <div class="chip" onclick="sendChip(this)">UI design ideas</div>
+        <div class="chip" onclick="sendChip(this)">Compare REST vs GraphQL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-zone">
+    <div class="input-box">
+      <textarea id="iris-input" rows="1" placeholder="Message IRIS..."></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+    <div class="input-footer-row">
+      <span class="inp-hint">Shift+Enter for new line &nbsp;·&nbsp; Memory active across sessions</span>
+      <span class="inp-hint" id="charCount"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG — change BACKEND_URL if needed
+// ══════════════════════════════════════════════
+const BACKEND_URL = 'http://localhost:3000';
+
+const SYSTEM = `You are IRIS — Intelligent Response & Intelligence System. You are sharp, analytical, and precise. You specialize in coding, mathematics, physics, research, and general knowledge. Format responses clearly. Use markdown code blocks for code. Be concise but thorough. You are IRIS, a custom AI assistant.`;
+
+const MODEL_LABELS = {
+  local:  'llama3.2 · local',
+  openai: 'gpt-4o-mini · OpenAI',
+  claude: 'claude-sonnet · Claude'
+};
+
+let chats = {}, currentId = null, busy = false;
+const input    = document.getElementById('iris-input');
+const chatArea = document.getElementById('chat-area');
+const sendBtn  = document.getElementById('send-btn');
+
+// ── Utilities ──────────────────────────────────────
+function uid()     { return 'ch_' + Date.now() + '_' + Math.random().toString(36).slice(2,6); }
+function timeNow() { return new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}); }
+function esc(s)    { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function save()    { try{ localStorage.setItem('iris3_chats', JSON.stringify(chats)); }catch(e){} }
+function load()    { try{ const d=localStorage.getItem('iris3_chats'); if(d) chats=JSON.parse(d); }catch(e){ chats={}; } }
+
+// ── Server health check ────────────────────────────
+async function checkServer() {
+  const dot  = document.getElementById('serverDot');
+  const text = document.getElementById('serverText');
+  try {
+    const r = await fetch(BACKEND_URL + '/', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      dot.className  = 'server-dot ok';
+      text.textContent = 'backend online';
+      return true;
+    }
+  } catch(e) {}
+  dot.className  = 'server-dot';
+  text.textContent = 'backend offline';
+  return false;
+}
+
+// ── Memory context ─────────────────────────────────
+function memoryContext() {
+  const others = Object.values(chats).filter(c => c.id !== currentId && c.msgs && c.msgs.length > 0);
+  if (!others.length) return '';
+  const mem = others.map(c => {
+    const lines = c.msgs.slice(0,6).map(m => `${m.role==='user'?'User':'IRIS'}: ${m.content.slice(0,120)}`).join('\n');
+    return `[Past session: "${c.title}"]\n${lines}`;
+  }).join('\n\n');
+  return `\n\nMEMORY FROM PREVIOUS CONVERSATIONS:\n${mem}\n\nIf the user's question references something from a past session, answer naturally.`;
+}
+
+// ── Nav ────────────────────────────────────────────
+function setNav(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function onModelChange() {
+  const sel = document.getElementById('modelSelect').value;
+  document.getElementById('modelName').textContent = MODEL_LABELS[sel] || sel;
+}
+
+// ── Chat management ────────────────────────────────
+function newChat() {
+  const id = uid();
+  chats[id] = { id, title:'New conversation', msgs:[], created:Date.now() };
+  save(); currentId = id;
+  renderHistory(); showWelcome();
+  document.getElementById('convTitle').textContent = 'New conversation';
+  input.focus();
+}
+
+function switchChat(id) {
+  if (busy) return;
+  currentId = id; renderHistory(); renderMessages();
+  const c = chats[id];
+  if (c) document.getElementById('convTitle').textContent = c.title;
+}
+
+function deleteChat(id, e) {
+  e.stopPropagation();
+  delete chats[id]; save();
+  if (currentId === id) {
+    const sorted = Object.values(chats).sort((a,b) => b.created - a.created);
+    sorted.length ? switchChat(sorted[0].id) : newChat();
+    return;
+  }
+  renderHistory();
+}
+
+function clearCurrentChat() {
+  if (!currentId || !chats[currentId]) return;
+  chats[currentId].msgs = []; chats[currentId].title = 'New conversation';
+  save(); renderHistory(); showWelcome();
+  document.getElementById('convTitle').textContent = 'New conversation';
+}
+
+// ── Render sidebar ─────────────────────────────────
+function renderHistory() {
+  const list   = document.getElementById('historyList');
+  const sorted = Object.values(chats).sort((a,b) => b.created - a.created);
+  if (!sorted.length) { list.innerHTML = '<div class="no-history">No sessions yet</div>'; return; }
+  list.innerHTML = sorted.map(c => {
+    const active = c.id === currentId;
+    const cnt    = Math.floor((c.msgs||[]).length / 2);
+    return `<div class="history-item${active?' active-chat':''}" onclick="switchChat('${c.id}')">
+      <span>${esc(c.title)}</span>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        ${cnt>0 ? `<span class="hi-count">${cnt}</span>` : ''}
+        <span class="hi-del" onclick="deleteChat('${c.id}',event)">✕</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Render messages ────────────────────────────────
+function showWelcome() {
+  chatArea.innerHTML = `
+    <div class="wm-bg">IRIS</div>
+    <div class="wm-sub">Intelligent Response Intelligence System</div>
+    <div class="welcome-screen" id="welcome">
+      <div class="welcome-icon">◈</div>
+      <div class="welcome-title">Hi 👋 How can I help you today?</div>
+      <div class="welcome-sub">Ask me anything — code, research, ideas, or just a conversation.</div>
+      <div class="chips">
+        <div class="chip" onclick="sendChip(this)">Write a Python function</div>
+        <div class="chip" onclick="sendChip(this)">Explain async/await</div>
+        <div class="chip" onclick="sendChip(this)">Debug my code</div>
+        <div class="chip" onclick="sendChip(this)">UI design ideas</div>
+        <div class="chip" onclick="sendChip(this)">Compare REST vs GraphQL</div>
+      </div>
+    </div>`;
+}
+
+function renderMessages() {
+  const chat = currentId ? chats[currentId] : null;
+  if (!chat || !chat.msgs.length) { showWelcome(); return; }
+  chatArea.innerHTML = `<div class="wm-bg">IRIS</div><div class="wm-sub">Intelligent Response Intelligence System</div>`;
+  chat.msgs.forEach(m => chatArea.appendChild(buildMsgEl(m)));
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function buildMsgEl(m) {
+  const div = document.createElement('div');
+  if (m.role === 'user') {
+    div.className = 'msg-row user';
+    div.innerHTML = `<div class="msg-bubble">${esc(m.content)}<div class="msg-meta">${m.time||''}</div></div>`;
+  } else {
+    div.className = 'msg-row iris';
+    const memTag   = m.fromMemory ? `<span class="mem-badge">from memory</span>` : '';
+    const modelTag = m.modelUsed  ? `<span class="model-tag">${esc(m.modelUsed)}</span>` : '';
+    const content  = m.isError
+      ? `<div class="error-bubble">${fmt(m.content)}</div>`
+      : `<div class="msg-content">${fmt(m.content)}</div>`;
+    div.innerHTML = `<div class="msg-bubble">
+      <div class="iris-msg-header"><div class="iris-dot">◈</div><span class="iris-label">IRIS</span></div>
+      ${content}
+      <div class="msg-meta">${m.time||''} ${memTag} ${modelTag}</div>
+    </div>`;
+  }
+  return div;
+}
+
+function appendMsg(m) {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+  chatArea.appendChild(buildMsgEl(m));
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+// ── Format markdown ────────────────────────────────
+function fmt(text) {
+  let t = esc(text);
+  t = t.replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) =>
+    `<div class="code-block">${code.trim()}</div>`);
+  t = t.replace(/`([^`]+)`/g, '<code class="inline">$1</code>');
+  t = t.replace(/\*\*(.*?)\*\*/g, '<strong style="color:rgba(255,255,255,0.92);">$1</strong>');
+  t = t.replace(/\*(.*?)\*/g, '<em style="color:rgba(255,255,255,0.72);">$1</em>');
+  t = t.replace(/\n/g, '<br>');
+  return t;
+}
+
+// ── Thinking indicator ─────────────────────────────
+function showThinking() {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+  const div = document.createElement('div');
+  div.className = 'thinking-row'; div.id = 'thinking-row';
+  div.innerHTML = `<div class="thinking-bubble">
+    <div class="thinking-icon">◈</div>
+    <span class="thinking-text">Thinking</span>
+    <div class="thinking-dots"><span></span><span></span><span></span></div>
+  </div>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function removeThinking() {
+  const t = document.getElementById('thinking-row');
+  if (t) t.remove();
+}
+
+// ── Input handlers ─────────────────────────────────
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+  document.getElementById('charCount').textContent = input.value.length > 0 ? `${input.value.length} chars` : '';
+});
+
+function sendChip(el) { input.value = el.textContent; sendMessage(); }
+
+// ── SEND MESSAGE ───────────────────────────────────
+async function sendMessage() {
+  if (busy) return;
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('charCount').textContent = '';
+
+  if (!currentId) newChat();
+  const chat = chats[currentId];
+  if (!chat) return;
+
+  const userMsg = { role:'user', content:text, time:timeNow() };
+  chat.msgs.push(userMsg);
+  if (chat.msgs.length === 1) chat.title = text.slice(0,38) + (text.length > 38 ? '…' : '');
+  save(); renderHistory(); appendMsg(userMsg);
+
+  busy = true; sendBtn.disabled = true;
+  showThinking();
+
+  const model     = document.getElementById('modelSelect').value;
+  const memCtx    = memoryContext();
+  const sysPrompt = SYSTEM + memCtx;
+  const apiMsgs   = chat.msgs.slice(-14)
+    .filter(m => m.role !== 'system')
+    .map(m => ({ role: m.role, content: m.content }));
+
+  let reply = '', fromMemory = false, modelUsed = MODEL_LABELS[model] || model, isError = false;
+
+  try {
+    const r = await fetch(`${BACKEND_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, messages: apiMsgs, system: sysPrompt })
+    });
+
+    if (!r.ok) {
+      const errData = await r.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errData.error || `HTTP ${r.status}`);
+    }
+
+    const data = await r.json();
+    reply      = data.reply || 'No response received.';
+    modelUsed  = data.model || modelUsed;
+    fromMemory = memCtx.length > 80 && /previous|earlier|session|before|last time/i.test(reply);
+
+  } catch (err) {
+    isError = true;
+    if (err.message.includes('fetch') || err.message.includes('Failed')) {
+      reply = `**Backend not running!**\n\nStart your backend server:\n\`\`\`bash\ncd backend\nnpm install\nnode server.js\n\`\`\`\nThen refresh and try again.`;
+    } else if (err.message.includes('Ollama')) {
+      reply = `**Ollama not running.**\n\nStart it with:\n\`\`\`bash\nollama serve\nollama pull llama3.2\n\`\`\``;
+    } else {
+      reply = `**Error:** ${err.message}`;
+    }
+  }
+
+  removeThinking();
+  document.getElementById('modelName').textContent = modelUsed;
+
+  const aiMsg = { role:'assistant', content:reply, time:timeNow(), fromMemory, modelUsed, isError };
+  chat.msgs.push(aiMsg);
+  save(); renderHistory(); appendMsg(aiMsg);
+
+  busy = false; sendBtn.disabled = false; input.focus();
+}
+
+// ── Init ───────────────────────────────────────────
+load();
+const existing = Object.values(chats).sort((a,b) => b.created - a.created);
+if (existing.length) {
+  currentId = existing[0].id;
+  renderHistory(); renderMessages();
+  document.getElementById('convTitle').textContent = existing[0].title;
+} else {
+  newChat();
+}
+
+// Check server status on load + every 10s
+checkServer();
+setInterval(checkServer, 10000);
+</script>
+</body>
+</html>
